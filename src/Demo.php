@@ -18,7 +18,7 @@ class Demo
             . "所以邓小平同志跟我讲话，说“中央都决定啦，你来当总书记”，我说另请高明吧。\n"
             . "我实在我也不是谦虚，我一个上海市委书记怎么到北京来了呢？";
         $creator->font_size = 16;
-        $creator->line_width = 200;
+        $creator->line_width = 400;
         $creator->line_height = 30;
         $creator->font_color = new Color(59, 89, 152);
         $creator->execute();
