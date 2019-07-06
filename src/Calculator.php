@@ -59,10 +59,10 @@ class Calculator
             $text_item_params = $this->getTextWriterItemParams($text_item);
 
             // 获取图片宽度，取当前宽度与每行文字宽度中最大值即可
-            $result['image_width'] = max($result['image_width'], $text_item_params['width']);
+            $result['image_width'] = max($result['image_width'], $text_item_params['line_width']);
 
             // 获取图片高度
-            $result['image_height'] += $text_item_params['height'];
+            $result['image_height'] += $text_item_params['line_height'];
 
             // 最终的文字内容
             $text_array_final = array_merge($text_array_final, $text_item_params['text_array']);
@@ -88,8 +88,8 @@ class Calculator
         $font_file      = $this->creator->font_filename;
 
         $result = [
-            'width' => $line_width? $line_width : 0,
-            'height' => 0,
+            'line_width' => $line_width ? $line_width : 0,
+            'line_height' => 0,
             'text_array' => [],
         ];
 
@@ -113,7 +113,7 @@ class Calculator
                     $prev_text_height = $this->getHeightFromBox($prev_text_box);
                     $text_array_item = [
                         'content' => $prev_text,
-                        'width' => $line_width,
+                        'width' => $this->getWidthFromBox($prev_text_box),
                         // 行高
                         'height' => max($line_height, $prev_text_height),
                         // 文字的实际高度
@@ -123,7 +123,7 @@ class Calculator
                     $prev_text = $curr_char;
 
                     // 所有文字高度增加
-                    $result['height'] += $text_array_item['height'];
+                    $result['line_height'] += $text_array_item['height'];
                 } else {
                     // 不需要换行
                     $prev_text = $temp_text;
@@ -139,14 +139,14 @@ class Calculator
             // 最后一行的内容及设置
             $text_array_item = [
                 'content' => $prev_text,
-                'width' => $line_width,
+                'width' => $this->getWidthFromBox($last_text_box),
                 // 行高
                 'height' => max($line_height, $last_text_height),
                 // 文字实际高度
                 'text_height' => $last_text_height,
             ];
             $text_array[] = $text_array_item;
-            $result['height'] += $text_array_item['height'];
+            $result['line_height'] += $text_array_item['height'];
         } else {
             // 没有规定行宽
             // 是否规定了每行文字的数量
@@ -173,9 +173,9 @@ class Calculator
                 ];
                 $text_array[] = $text_array_item;
                 // 直接计算当前行的宽度
-                $result['width'] = max($text_each_line_width, $result['width']);
+                $result['line_width'] = max($text_each_line_width, $result['line_width']);
                 // 直接计算当前行的高度
-                $result['height'] += $text_array_item['height'];
+                $result['line_height'] += $text_array_item['height'];
             }
         }
 

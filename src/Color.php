@@ -21,7 +21,7 @@ class Color
     public $blue = 0;
 
     /**
-     * @var int 不透明度，0-100
+     * @var int 不透明度，0-100，0 为完全透明，100 为完全不透明
      */
     public $opacity = 100;
 

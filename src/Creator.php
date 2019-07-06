@@ -43,6 +43,11 @@ class Creator
     public $font_size = 18;
 
     /**
+     * @var string 字号单位，默认为像素
+     */
+    public $font_size_unit = 'point';
+
+    /**
      * @var Color 字体颜色，默认黑色
      */
     public $font_color;
@@ -88,6 +93,16 @@ class Creator
     public $line_length = 0;
 
     /**
+     * @var int 图片宽度，默认为0，表示按照实际文字所用宽度来生成图片
+     */
+    public $image_width = 0;
+
+    /**
+     * @var string 对齐方式，默认为 left
+     */
+    public $align = 'left';
+
+    /**
      * @var string 文字内容
      */
     public $text;
@@ -108,7 +123,6 @@ class Creator
     public function __construct()
     {
         // 设置一个默认字体
-//        var_dump(dirname(__FILE__) . '/resources/PingFang.ttf');die;
         $this->font_filename = dirname(__FILE__) . '/resources/PingFang.ttf';
     }
 
@@ -161,11 +175,16 @@ class Creator
             $this->font_color = Color::initWithArray($this->default_font_color);
         }
 
+        if ($this->font_size_unit === 'pixel') {
+            $this->font_size = Px2Pt::switchPx2Pt($this->font_size);
+        }
+
         $calculator = new Calculator($this);
         $params = $calculator->generateTextWriterParams();
 
         // 创建空白图片
-        $image = $this->createTransparentImage($params['image_width'], $params['image_height']);
+        $image_width = $this->image_width ? $this->image_width : $params['image_width'];
+        $image = $this->createTransparentImage($image_width, $params['image_height']);
 
         // 写文字
         $this->drawTextToImage($image, $params);
@@ -196,11 +215,11 @@ class Creator
 
         // 计算出基础的 x y
         $box = imagettfbbox($this->font_size, 0, $this->font_filename, $params['text'][0]['content']);
-        $x = 0 - $box[0];
-        $y = 0 - $box[1];
+        $base_x = 0 - $box[0];
+        $base_y = 0 - $box[1];
 
         // 上方基线
-        $top = $y;
+        $top = $base_y;
 
         foreach ($params['text'] as $item) {
             // 文字上下居中处理
@@ -210,6 +229,24 @@ class Creator
                 $y = ($item['height'] + $item['text_height']) / 2 + $top;
             }
             $top += $item['height'];
+
+            // 文字对齐方式
+            if ($this->align === 'left') {
+                $x = $base_x;
+            } else if ($this->align === 'center') {
+                if ($this->image_width) {
+                    $x = ($this->image_width - $item['width']) / 2 + $base_x;
+                } else {
+                    $x = ($params['image_width'] - $item['width']) / 2 + $base_x;
+                }
+            } else if ($this->align === 'right') {
+                if ($this->image_width) {
+                    $x = $this->image_width - $item['width'] + $base_x;
+                } else {
+                    $x = $params['image_width'] - $item['width'] + $base_x;
+                }
+            }
+
             // 写文字
             imagettftext($image_resource, $params['font_size'], 0, $x, $y, $font_color_allocate, $this->font_filename, $item['content']);
         }
