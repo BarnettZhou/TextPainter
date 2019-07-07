@@ -50,7 +50,8 @@ class Calculator
         ];
 
         // 根据换行符拆分文字内容
-        $text_array = explode("\n", $this->creator->text);
+        $text = str_replace('\n', "\n", $this->creator->text);
+        $text_array = explode("\n", $text);
 
         // 根据 line_length 拆分文字内容
         if ($this->creator->line_length) {
