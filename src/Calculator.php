@@ -52,6 +52,19 @@ class Calculator
         // 根据换行符拆分文字内容
         $text_array = explode("\n", $this->creator->text);
 
+        // 根据 line_length 拆分文字内容
+        if ($this->creator->line_length) {
+            $temp_text_array = [];
+            foreach ($text_array as $text) {
+                $temp_text_array = array_merge(
+                    $temp_text_array,
+                    $this->subTextWithLineLength($text, $this->creator->line_length)
+                );
+            }
+
+            $text_array = $temp_text_array;
+        }
+
         // 最终的文字内容
         $text_array_final = [];
         foreach ($text_array as $text_item) {
@@ -149,34 +162,25 @@ class Calculator
             $result['line_height'] += $text_array_item['height'];
         } else {
             // 没有规定行宽
-            // 是否规定了每行文字的数量
-            if ($line_length) {
-                $text_lines = $this->subTextWithLineLength($text_item, $line_length);
-            } else {
-                $text_lines = [$text_item];
-            }
-
-            foreach ($text_lines as $text_each_line) {
-                // 获取当前行的宽度、高度
-                $text_each_line_box = imagettfbbox($font_size, 0, $font_file, $text_each_line);
-                $text_each_line_width = $this->getWidthFromBox($text_each_line_box);
-                // 注意规定行高的处理
-                $text_each_line_height = $this->getHeightFromBox($text_each_line_box);
-                // text-item
-                $text_array_item = [
-                    'content' => $text_each_line,
-                    'width' => $text_each_line_width,
-                    // 行高
-                    'height' => max($text_each_line_height, $line_height),
-                    // 文字实际高度
-                    'text_height' => $text_each_line_height,
-                ];
-                $text_array[] = $text_array_item;
-                // 直接计算当前行的宽度
-                $result['line_width'] = max($text_each_line_width, $result['line_width']);
-                // 直接计算当前行的高度
-                $result['line_height'] += $text_array_item['height'];
-            }
+            // 获取当前行的宽度、高度
+            $text_each_line_box = imagettfbbox($font_size, 0, $font_file, $text_item);
+            $text_each_line_width = $this->getWidthFromBox($text_each_line_box);
+            // 注意规定行高的处理
+            $text_each_line_height = $this->getHeightFromBox($text_each_line_box);
+            // text-item
+            $text_array_item = [
+                'content' => $text_item,
+                'width' => $text_each_line_width,
+                // 行高
+                'height' => max($text_each_line_height, $line_height),
+                // 文字实际高度
+                'text_height' => $text_each_line_height,
+            ];
+            $text_array[] = $text_array_item;
+            // 直接计算当前行的宽度
+            $result['line_width'] = max($text_each_line_width, $result['line_width']);
+            // 直接计算当前行的高度
+            $result['line_height'] += $text_array_item['height'];
         }
 
         $result['text_array'] = $text_array;

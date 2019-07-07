@@ -55,7 +55,22 @@ class Creator
     /**
      * @var array 默认字体颜色
      */
-    private $default_font_color = ['red' => 0, 'green' => 0, 'blue' => '0', 'alpha' => 0];
+    private $default_font_color = ['red' => 0, 'green' => 0, 'blue' => '0', 'opacity' => 100];
+
+    /**
+     * @var Color 背景颜色
+     */
+    public $background_color;
+
+    /**
+     * @var array 默认背景颜色
+     */
+    public $default_background_color = ['red' => 0, 'green' => 0, 'blue' => 0, 'opacity' => 0];
+
+    /**
+     * @var Color 描边颜色
+     */
+    public $outline_color;
 
     /**
      * @var int 描边宽度，默认为0，表示无边框
@@ -63,22 +78,12 @@ class Creator
     private $outline_width = 0;
 
     /**
-     * @var array 背景颜色
-     */
-    public $background_color = ['red' => 0, 'green' => 0, 'blue' => 0, 'alpha' => 127];
-
-    /**
-     * @var Color 描边颜色，默认白色
-     */
-    public $outline_color;
-
-    /**
      * @var array 默认描边颜色
      */
     private $default_outline_color = ['red' => 254, 'green' => 254, 'blue' => 254, 'alpha' => 0];
 
     /**
-     * @var int 行宽，默认为0，表示不规定行宽
+     * @var int 行宽，默认为0，表示不规定行宽，最终行宽以实际每行文字长度为准
      */
     public $line_width = 0;
 
@@ -124,6 +129,22 @@ class Creator
     {
         // 设置一个默认字体
         $this->font_filename = dirname(__FILE__) . '/resources/PingFang.ttf';
+
+        // 设置默认字体颜色
+        $this->font_color = new Color(
+            $this->default_font_color['red'],
+            $this->default_font_color['green'],
+            $this->default_font_color['blue'],
+            $this->default_font_color['opacity']
+        );
+
+        // 设置默认背景颜色
+        $this->background_color = new Color(
+            $this->default_background_color['red'],
+            $this->default_background_color['green'],
+            $this->default_background_color['blue'],
+            $this->default_background_color['opacity']
+        );
     }
 
     /**
@@ -166,25 +187,24 @@ class Creator
      */
     public function execute()
     {
+        // 检查是否填写了文字内容
         if (!$this->text) {
             $this->error_message = '请填写文字内容';
             return false;
         }
 
-        if (!$this->font_color) {
-            $this->font_color = Color::initWithArray($this->default_font_color);
-        }
-
+        // 使用像素作为字体大小
         if ($this->font_size_unit === 'pixel') {
             $this->font_size = Px2Pt::switchPx2Pt($this->font_size);
         }
 
+        // 生成写文字所需的参数
         $calculator = new Calculator($this);
         $params = $calculator->generateTextWriterParams();
 
         // 创建空白图片
         $image_width = $this->image_width ? $this->image_width : $params['image_width'];
-        $image = $this->createTransparentImage($image_width, $params['image_height']);
+        $image = $this->createBlankImage($image_width, $params['image_height']);
 
         // 写文字
         $this->drawTextToImage($image, $params);
@@ -231,9 +251,7 @@ class Creator
             $top += $item['height'];
 
             // 文字对齐方式
-            if ($this->align === 'left') {
-                $x = $base_x;
-            } else if ($this->align === 'center') {
+            if ($this->align === 'center') {
                 if ($this->image_width) {
                     $x = ($this->image_width - $item['width']) / 2 + $base_x;
                 } else {
@@ -245,6 +263,8 @@ class Creator
                 } else {
                     $x = $params['image_width'] - $item['width'] + $base_x;
                 }
+            } else {
+                $x = $base_x;
             }
 
             // 写文字
@@ -334,22 +354,22 @@ class Creator
     }
 
     /**
-     * 生成一张透明图片
+     * 生成背景图
      * @param $width
      * @param $height
      * @return resource
      */
-    public function createTransparentImage($width, $height)
+    public function createBlankImage($width, $height)
     {
         $image = imagecreatetruecolor($width, $height);
         imagesavealpha($image, true);
         imagealphablending($image, false);
         $color = imagecolorallocatealpha(
             $image,
-            $this->background_color['red'],
-            $this->background_color['green'],
-            $this->background_color['blue'],
-            127
+            $this->background_color->red,
+            $this->background_color->green,
+            $this->background_color->blue,
+            $this->background_color->opacity2alpha()
         );
         imagefill($image, 0, 0, $color);
         return $image;

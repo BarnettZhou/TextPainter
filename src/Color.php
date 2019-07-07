@@ -118,4 +118,13 @@ class Color
 
         return $this->opacity < $error_level;
     }
+
+    /**
+     * 不透明度转换为 alpha 值
+     * @return float|int
+     */
+    public function opacity2alpha()
+    {
+        return (100 - $this->opacity) / 100 * 127;
+    }
 }
