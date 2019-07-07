@@ -96,7 +96,6 @@ class Calculator
     {
         $line_width     = $this->creator->line_width;
         $line_height    = $this->creator->line_height;
-        $line_length    = $this->creator->line_length;
         $font_size      = $this->creator->font_size;
         $font_file      = $this->creator->font_filename;
 
