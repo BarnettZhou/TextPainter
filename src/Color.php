@@ -55,6 +55,18 @@ class Color
     }
 
     /**
+     *  使用16位色初始化
+     *  @param string $hex_color
+     *  @param int $opacity
+     *  @return Color
+     */
+    public static function createWithHex($hex_color, $opacity = 100)
+    {
+        $color_array = Helper::hex2rgb($hex_color);
+        return new self($color_array['red'], $color_array['green'], $color_array['blue'], $opacity);
+    }
+
+    /**
      * Color constructor.
      * @param $red
      * @param $green
